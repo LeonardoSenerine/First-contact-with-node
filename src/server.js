@@ -1,35 +1,36 @@
-import http from 'node:http';
-import { json } from './middlewares/json.js';
+import http from "node:http";
+import { json } from "./middlewares/json.js";
+import { routes } from "./routes.js";
 
-const users = [];
+// Cria o servidor HTTP principal da aplicacao.
+const server = http.createServer(async (request, response) => {
+  // Extrai o metodo (GET/POST/PUT/DELETE...) e a URL da requisicao atual.
+  const { method, url } = request;
 
-const server = http.createServer(async(request, response) => {
-    const { method, url } = request;
+  // Tenta ler o corpo da requisicao e converter para JSON.
+  await json(request, response);
 
-    await json(request, response);
-     
-    if (method === 'GET' && url === '/users') {
-       
-        return response.end(JSON.stringify(users));
-    }
+  // Procura a primeira rota que combine com metodo e caminho da requisicao.
+  const route = routes.find((route) => {
+    // Compara metodo e testa a URL com regex da rota.
+    return route.method == method && route.path.test(url);
+  });
 
-    if (method === 'POST' && url === '/users') {
+  // Se encontrou rota valida, processa a requisicao nela.
+  if (route) {
+    // Captura parametros dinamicos da URL (ex.: /users/:id).
+    const routeParams = request.url.match(route.path);
 
-        const { name, email } = request.body;
+    // Salva os parametros extraidos dentro de request.params para o handler usar.
+    request.params = { ...routeParams.groups };
 
-        users.push({
-            id: users.length + 1,
-            name,
-            email,
-        });
+    // Executa o handler da rota e encerra o fluxo aqui.
+    return route.handler(request, response);
+  }
 
-        response.writeHead(201);
-        return response.end();
-    }
-
-    return response
-    .writeHead(404)
-    .end('Not Found');
+  // Se nenhuma rota combinou, responde com 404.
+  return response.writeHead(404).end("Not Found");
 });
 
+// Inicia o servidor na porta 3333.
 server.listen(3333);

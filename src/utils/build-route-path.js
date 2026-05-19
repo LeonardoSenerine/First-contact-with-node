@@ -9,7 +9,7 @@ export function buildRouthPath(path) {
   );
 
   // Cria uma regex de rota ancorada no inicio da URL.
-  const pathRegex = new RegExp(`^${pathWithParams}`)
+  const pathRegex = new RegExp(`^${pathWithParams}(?<query>\\?(.*))?$`)
 
   // Retorna a regex pronta para comparacao no roteador.
   return pathRegex

@@ -14,8 +14,17 @@ export const routes = [
     path: buildRouthPath("/users"),
     // Funcao chamada quando a rota combina.
     handler: (request, response) => {
+      const { search } = request.query;
       // Busca todos os usuarios na tabela "users".
-      const users = database.select("users");
+      const users = database.select(
+        "users",
+        search
+          ? {
+              name: search,
+              email: search,
+            }
+          : null,
+      );
 
       // Retorna os usuarios em JSON.
       return response.end(JSON.stringify(users));

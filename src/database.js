@@ -28,10 +28,17 @@ export class DataBase {
   }
 
   // Retorna todos os registros de uma tabela.
-  select(table) {
+  select(table, search) {
     // Se a tabela nao existir ainda, devolve array vazio.
-    const data = this.#database[table] ?? [];
+    let data = this.#database[table] ?? [];
 
+    if (search) {
+      data = data.filter((row) => {
+        return Object.entries(search).some(([key, value]) => {
+          return row[key].toLowerCase().includes(value.toLowerCase());
+        });
+      });
+    }
     // Entrega os dados encontrados para quem chamou.
     return data;
   }

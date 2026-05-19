@@ -1,6 +1,7 @@
 import http from "node:http";
 import { json } from "./middlewares/json.js";
 import { routes } from "./routes.js";
+import { extractQueryParams } from "./utils/extract-query-params.js";
 
 // Cria o servidor HTTP principal da aplicacao.
 const server = http.createServer(async (request, response) => {
@@ -21,8 +22,11 @@ const server = http.createServer(async (request, response) => {
     // Captura parametros dinamicos da URL (ex.: /users/:id).
     const routeParams = request.url.match(route.path);
 
+    const { query, ...params } = routeParams.groups ?? {};
     // Salva os parametros extraidos dentro de request.params para o handler usar.
-    request.params = { ...routeParams.groups };
+    request.params = params;
+
+    request.query = query ? extractQueryParams(query) : {};
 
     // Executa o handler da rota e encerra o fluxo aqui.
     return route.handler(request, response);
